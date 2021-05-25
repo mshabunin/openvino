@@ -431,19 +431,19 @@ inline uint8_t type_size_or_zero<void>() {
 }
 
 namespace {
-constexpr bool isSpecificFloatPrecision(const Precision::ePrecision& precision) {
-    return precision == Precision::FP16 || precision == Precision::BF16;
-}
+    template <Precision::ePrecision T> struct FloatTrait { enum {val = false}; };
+    template <> struct FloatTrait<Precision::FP16> { enum {val = true}; };
+    template <> struct FloatTrait<Precision::BF16> { enum {val = true}; };
 } // namespace
 
 template <Precision::ePrecision T>
-inline typename std::enable_if<isSpecificFloatPrecision(T), bool>::type
+inline typename std::enable_if<FloatTrait<T>::val, bool>::type
 is_floating() {
     return true;
 }
 
 template <Precision::ePrecision T>
-inline typename std::enable_if<!isSpecificFloatPrecision(T), bool>::type
+inline typename std::enable_if<!FloatTrait<T>::val, bool>::type
 is_floating() {
     return std::is_floating_point<typename PrecisionTrait<T>::value_type>::value;
 }
